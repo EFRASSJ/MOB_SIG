@@ -43,7 +43,7 @@ const CreateAccountScreen = () => {
   };
   
   const handleGoToCart = () => {
-    navigation.navigate('ConfirmAccountScreen', { selectedDishes });
+    navigation.navigate('ConfirmAccount', { selectedDishes });
   };
 
   const handleSelectCategory = (category) => {

@@ -3,9 +3,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'react-native';
 import LoginScreen from '../screens/LoginScreen';
-import TablesScreen from '../screens/TablesScreen';
 import CreateAccountScreen from '../screens/CreateAccountScreen';
-import ConfirmAccountScreen from '../screens/ConfirmAccountScreen';
+import TablesScreen from '../screens/TablesScreeen';
+import ConfirmAccount from "../screens/ConfirmAccount";
 
 const Stack = createStackNavigator();
 
@@ -42,8 +42,8 @@ const AppNavigator = () => {
           }}
         />
         <Stack.Screen
-          name="ConfirmAccountScreen"
-          component={ConfirmAccountScreen}
+          name="ConfirmAccount"
+          component={ConfirmAccount}
           options={{
             headerShown: false,
             statusBarStyle: 'dark-content',
