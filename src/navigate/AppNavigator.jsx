@@ -2,10 +2,15 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'react-native';
+
+// Screens
 import LoginScreen from '../screens/LoginScreen';
+
 import CreateAccountScreen from '../screens/CreateAccountScreen';
-import TablesScreen from '../screens/TablesScreeen';
 import ConfirmAccount from "../screens/ConfirmAccount";
+import CheckoutScreen from "../screens/CheckoutScreen";
+import ReviewQRCodeScreen from "../screens/ReviewQRCodeScreen";
+import TablesScreen from '../screens/TablesScreeen';
 
 const Stack = createStackNavigator();
 
@@ -44,6 +49,24 @@ const AppNavigator = () => {
         <Stack.Screen
           name="ConfirmAccount"
           component={ConfirmAccount}
+          options={{
+            headerShown: false,
+            statusBarStyle: 'dark-content',
+            statusBarBackgroundColor: '#FFF',
+          }}
+        />
+        <Stack.Screen
+          name="CheckoutScreen"
+          component={CheckoutScreen}
+          options={{
+            headerShown: false,
+            statusBarStyle: 'dark-content',
+            statusBarBackgroundColor: '#FFF',
+          }}
+        />
+        <Stack.Screen
+          name="ReviewQRCodeScreen"
+          component={ReviewQRCodeScreen}
           options={{
             headerShown: false,
             statusBarStyle: 'dark-content',

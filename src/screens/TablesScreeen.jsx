@@ -1,83 +1,98 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet, FlatList, Image, Modal, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  SafeAreaView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Image,
+  Modal,
+  StatusBar,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
-import { tables } from '../utils/Tables';
+import api from '../IP';
+import SweetAlert from 'react-native-sweet-alert';
+
+const { height } = Dimensions.get('window');
 
 const TablesScreen = () => {
-  const [mesaState, setMesaState] = useState(tables);
+  const [mesaState, setMesaState] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
 
+  useEffect(() => {
+    api.get('/api/mesa')
+      .then(res => setMesaState(res.data))
+      .catch(err => {
+        console.error("Error al obtener mesas:", err);
+        SweetAlert.showAlertWithOptions({
+          title: 'Error',
+          subTitle: 'No se pudieron cargar las mesas',
+          confirmButtonTitle: 'Aceptar',
+          confirmButtonColor: '#DD6B55',
+          style: 'error',
+          cancellable: true
+        });
+      });
+  }, []);
+
   const handlePressTable = (id) => {
     const table = mesaState.find(mesa => mesa.id === id);
-    if (table.enabled) {
+    if (table.capacidad > 0) {
       setSelectedTable(table);
       setModalVisible(true);
-      return;
+    } else {
+      SweetAlert.showAlertWithOptions({
+        title: 'Mesa Inactiva',
+        subTitle: 'Esta mesa no está habilitada.',
+        confirmButtonTitle: 'Ok',
+        confirmButtonColor: '#DD6B55',
+        style: 'warning',
+        cancellable: true
+      });
     }
-
-    Alert.alert(
-      'Habilitar Mesa',
-      '¿Quieres habilitar esta mesa?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Sí',
-          onPress: () => {
-            setMesaState(prevState => prevState.map(mesa =>
-              mesa.id === id ? { ...mesa, enabled: true } : mesa
-            ));
-            navigation.navigate('CreateAccountScreen');
-          },
-        },
-      ]
-    );
   };
 
   const handleAddDishes = () => {
     setModalVisible(false);
-    navigation.navigate('CreateAccountScreen');
-  };
-
-  const handleViewAccount = () => {
-    setModalVisible(false);
-    Alert.alert('Ver cuenta', `Mostrando cuenta para la mesa: ${selectedTable.name}`);
-    // Aquí puedes redirigir a otra pantalla si es necesario
+    navigation.navigate('CreateAccountScreen', { mesa: selectedTable });
   };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={[styles.tableItem, item.enabled && styles.tableEnabled]}
+      style={[styles.tableItem, item.capacidad > 0 && styles.tableEnabled]}
       onPress={() => handlePressTable(item.id)}
-      disabled={item.enabled && modalVisible}
     >
       <Image
         source={require('../../assets/mesa-de-comedor.png')}
-        style={[styles.icon, item.enabled && { tintColor: '#9B1C31' }]}
+        style={[styles.icon, item.capacidad > 0 && { tintColor: '#9B1C31' }]}
+        resizeMode="contain"
       />
-      <Text style={[styles.tableText, item.enabled && { color: '#9B1C31' }]}>{item.name}</Text>
+      <Text style={[styles.tableText, item.capacidad > 0 && { color: '#9B1C31' }]}>{item.mesa}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
-      {/* Cambia el color de la barra de estado según el estado del modal */}
-      <StatusBar
-        barStyle={modalVisible ? 'dark-content' : 'light-content'}
-        backgroundColor={modalVisible ? 'rgba(0,0,0,0.5)' : '#fff'}
-      />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <Header title="Tus mesas" />
-      <FlatList
-        data={mesaState}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContainer}
-      />
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <FlatList
+          data={mesaState}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContainer}
+          scrollEnabled={false}
+        />
+      </ScrollView>
 
-      {/* Modal para opciones de mesa */}
+      {/* Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -86,12 +101,9 @@ const TablesScreen = () => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Opciones para {selectedTable?.name}</Text>
+            <Text style={styles.modalTitle}>Opciones para {selectedTable?.mesa}</Text>
             <TouchableOpacity style={styles.modalButton} onPress={handleAddDishes}>
               <Text style={styles.modalButtonText}>Agregar platillos</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton} onPress={handleViewAccount}>
-              <Text style={styles.modalButtonText}>Ver cuenta</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
               <Text style={styles.cancelButtonText}>Cancelar</Text>
@@ -99,18 +111,20 @@ const TablesScreen = () => {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
+  safeArea: { flex: 1, backgroundColor: '#F5F5F5' },
+  scroll: {
+    minHeight: height,
+    paddingBottom: 30
   },
   listContainer: {
     marginTop: -10,
     alignItems: 'center',
+    paddingBottom: 20
   },
   tableItem: {
     width: 170,
@@ -144,11 +158,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   modalContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -160,11 +170,7 @@ const styles = StyleSheet.create({
     width: '80%',
     alignItems: 'center',
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
   modalButton: {
     backgroundColor: '#9B1C31',
     padding: 10,
@@ -173,10 +179,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  modalButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
+  modalButtonText: { color: '#FFF', fontWeight: 'bold' },
   cancelButton: {
     backgroundColor: '#999',
     padding: 10,
@@ -185,10 +188,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  cancelButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
+  cancelButtonText: { color: '#FFF', fontWeight: 'bold' },
 });
 
 export default TablesScreen;

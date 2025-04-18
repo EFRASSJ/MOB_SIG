@@ -2,40 +2,39 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import LogoCompleto from '../../assets/LogoCompleto.png';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../IP';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
 
-  const handleSignIn = () => {
-    // Validación: Campos vacíos
+  const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Error', 'Por favor, ingrese su correo y contraseña.');
       return;
     }
 
-    // Validación: Formato de correo electrónico
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Por favor, ingrese un correo válido.');
-      return;
-    }
+    try {
+      const response = await api.post('/auth/login', {
+        email,
+        password
+      });
 
-    // Validación: Longitud mínima de la contraseña
-    if (password.length < 4) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 4 caracteres.');
-      return;
-    }
+      const token = response.data.token;
+      if (token) {
+        await AsyncStorage.setItem('token', token);
+        await AsyncStorage.setItem('userEmail', email);
 
-    // Validación: Credenciales específicas
-    if (email !== 'usuario@gmail.com' || password !== '1234') {
-      Alert.alert('Error', 'Correo o contraseña incorrectos.');
-      return;
+        navigation.navigate('TablesScreen');
+      } else {
+        Alert.alert('Error', 'No se recibió un token válido.');
+      }
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+      Alert.alert('Error', 'Credenciales inválidas o error de red.');
     }
-
-    // Navegación a la pantalla de mesas
-    navigation.navigate('TablesScreen');
   };
 
   return (
