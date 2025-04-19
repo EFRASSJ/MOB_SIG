@@ -10,12 +10,12 @@ import {
   Modal,
   StatusBar,
   Dimensions,
-  ScrollView,
+  ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
 import api from '../IP';
-import SweetAlert from 'react-native-sweet-alert';
+import AwesomeAlert from 'react-native-awesome-alerts';
 
 const { height } = Dimensions.get('window');
 
@@ -23,6 +23,9 @@ const TablesScreen = () => {
   const [mesaState, setMesaState] = useState([]);
   const [selectedTable, setSelectedTable] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -30,14 +33,8 @@ const TablesScreen = () => {
       .then(res => setMesaState(res.data))
       .catch(err => {
         console.error("Error al obtener mesas:", err);
-        SweetAlert.showAlertWithOptions({
-          title: 'Error',
-          subTitle: 'No se pudieron cargar las mesas',
-          confirmButtonTitle: 'Aceptar',
-          confirmButtonColor: '#DD6B55',
-          style: 'error',
-          cancellable: true
-        });
+        setAlertMessage('No se pudieron cargar las mesas');
+        setAlertVisible(true);
       });
   }, []);
 
@@ -47,14 +44,8 @@ const TablesScreen = () => {
       setSelectedTable(table);
       setModalVisible(true);
     } else {
-      SweetAlert.showAlertWithOptions({
-        title: 'Mesa Inactiva',
-        subTitle: 'Esta mesa no está habilitada.',
-        confirmButtonTitle: 'Ok',
-        confirmButtonColor: '#DD6B55',
-        style: 'warning',
-        cancellable: true
-      });
+      setAlertMessage('Esta mesa no está habilitada.');
+      setAlertVisible(true);
     }
   };
 
@@ -111,6 +102,19 @@ const TablesScreen = () => {
           </View>
         </View>
       </Modal>
+
+      {/* Sweet Alert (reemplazo) */}
+      <AwesomeAlert
+        show={alertVisible}
+        title="Atención"
+        message={alertMessage}
+        closeOnTouchOutside={true}
+        closeOnHardwareBackPress={false}
+        showConfirmButton={true}
+        confirmText="OK"
+        confirmButtonColor="#DD6B55"
+        onConfirmPressed={() => setAlertVisible(false)}
+      />
     </SafeAreaView>
   );
 };

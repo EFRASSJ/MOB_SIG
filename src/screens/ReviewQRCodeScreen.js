@@ -1,18 +1,22 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useNavigation } from '@react-navigation/native';
 
 export default function ReviewQRCodeScreen({ route }) {
   const navigation = useNavigation();
-  const mesaId = route.params?.mesaId || 'mesa_default';
+  const mesa = route.params?.mesa || { id: 'mesa_default', mesa: 'Mesa Desconocida' };
+
+
+  const qrUrl = `http://192.168.0.125:5173/resenas`;
+
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Gracias por tu compra 🎉</Text>
       <Text style={styles.text}>Escanea el código para dejar tu reseña</Text>
       <View style={styles.qrContainer}>
-        <QRCode value={`https://mipagina.com/resena/${mesaId}`} size={200} />
+        <QRCode value={qrUrl} size={200} />
       </View>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('TablesScreen')}>
         <Text style={styles.buttonText}>Volver al inicio</Text>
@@ -28,7 +32,7 @@ const styles = StyleSheet.create({
   qrContainer: {
     padding: 20,
     backgroundColor: '#FFF',
-    borderRadius: 10,
+    borderRadius: 10, 
     elevation: 5,
   },
   button: {

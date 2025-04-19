@@ -53,12 +53,15 @@ export default function CreateAccountScreen({ navigation, route }) {
     }
   };
 
+  const total = seleccionados.reduce((acc, p) => Number(acc) + (Number(p.precio) || 0), 0);
+
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={[styles.item, seleccionados.some(p => p.id === item.id) && styles.itemSelected]}
       onPress={() => toggleProducto(item)}
     >
       <Text style={styles.itemText}>{item.nombre}</Text>
+      <Text style={styles.itemPrice}>${Number(item.precio || '0.00').toFixed(2)} MXN</Text>
     </TouchableOpacity>
   );
 
@@ -70,6 +73,9 @@ export default function CreateAccountScreen({ navigation, route }) {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
       />
+
+      <Text style={styles.total}>Total: ${Number(total).toFixed(2)} MXN</Text>
+
       <TouchableOpacity style={styles.button} onPress={confirmarOrden}>
         <Text style={styles.buttonText}>Confirmar orden</Text>
       </TouchableOpacity>
@@ -103,12 +109,28 @@ const styles = StyleSheet.create({
   itemSelected: {
     backgroundColor: '#9B1C31'
   },
-  itemText: { color: '#000' },
+  itemText: {
+    color: '#000',
+    fontWeight: 'bold',
+    fontSize: 16
+  },
+  itemPrice: {
+    color: '#333',
+    fontSize: 14,
+    marginTop: 4
+  },
+  total: {
+    marginTop: 15,
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'right',
+    color: '#9B1C31'
+  },
   button: {
     backgroundColor: '#9B1C31',
     padding: 12,
     borderRadius: 8,
-    marginTop: 20,
+    marginTop: 15,
     alignItems: 'center'
   },
   buttonText: { color: '#FFF', fontWeight: 'bold' }
