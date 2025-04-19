@@ -30,7 +30,10 @@ const TablesScreen = () => {
 
   useEffect(() => {
     api.get('/api/mesa')
-      .then(res => setMesaState(res.data))
+      .then(res => {
+        const habilitadas = res.data.filter(mesa => mesa.estado === "Habilitada");
+        setMesaState(habilitadas);
+      })
       .catch(err => {
         console.error("Error al obtener mesas:", err);
         setAlertMessage('No se pudieron cargar las mesas');
@@ -40,12 +43,9 @@ const TablesScreen = () => {
 
   const handlePressTable = (id) => {
     const table = mesaState.find(mesa => mesa.id === id);
-    if (table.capacidad > 0) {
+    if (table) {
       setSelectedTable(table);
       setModalVisible(true);
-    } else {
-      setAlertMessage('Esta mesa no está habilitada.');
-      setAlertVisible(true);
     }
   };
 
@@ -56,15 +56,15 @@ const TablesScreen = () => {
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={[styles.tableItem, item.capacidad > 0 && styles.tableEnabled]}
+      style={[styles.tableItem, styles.tableEnabled]}
       onPress={() => handlePressTable(item.id)}
     >
       <Image
         source={require('../../assets/mesa-de-comedor.png')}
-        style={[styles.icon, item.capacidad > 0 && { tintColor: '#9B1C31' }]}
+        style={[styles.icon, { tintColor: '#9B1C31' }]}
         resizeMode="contain"
       />
-      <Text style={[styles.tableText, item.capacidad > 0 && { color: '#9B1C31' }]}>{item.mesa}</Text>
+      <Text style={[styles.tableText, { color: '#9B1C31' }]}>{item.mesa}</Text>
     </TouchableOpacity>
   );
 
@@ -103,7 +103,7 @@ const TablesScreen = () => {
         </View>
       </Modal>
 
-      {/* Sweet Alert (reemplazo) */}
+      {/* Sweet Alert */}
       <AwesomeAlert
         show={alertVisible}
         title="Atención"
